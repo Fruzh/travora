@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
     const toggleButtonRef = useRef(null);
+    const router = useRouter();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -13,6 +15,7 @@ export default function Navbar() {
                 isOpen &&
                 menuRef.current &&
                 !menuRef.current.contains(event.target) &&
+                toggleButtonRef.current &&
                 !toggleButtonRef.current.contains(event.target)
             ) {
                 setIsOpen(false);
@@ -20,10 +23,14 @@ export default function Navbar() {
         };
 
         document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen]);
+
+    const handleWhatsAppClick = () => {
+        const message = encodeURIComponent('Halo! Saya ingin bertanya tentang Bali Explore.');
+        window.open(`https://wa.me/6281234567890?text=${message}`, '_blank');
+        setIsOpen(false);
+    };
 
     const navVariants = {
         hidden: { opacity: 0, y: -50 },
@@ -48,11 +55,6 @@ export default function Navbar() {
         hover: { scale: 1.05, color: '#0ea5e9', transition: { duration: 0.2 } },
     };
 
-    const handleWhatsAppClick = () => {
-        const message = encodeURIComponent('Halo! Saya ingin bertanya tentang Bali Explore.');
-        window.open(`https://wa.me/6281234567890?text=${message}`, '_blank');
-    };
-
     return (
         <motion.nav
             className="sticky top-0 bg-white/95 backdrop-blur-lg shadow-md z-50 py-3"
@@ -64,32 +66,24 @@ export default function Navbar() {
                 <Link
                     href="/"
                     className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-cyan-500"
+                    onClick={() => setIsOpen(false)}
                 >
                     Bali Explore
                 </Link>
 
-                {/* Toggle button mobile */}
+                {/* Toggle Button (Mobile) */}
                 <div className="md:hidden">
                     <button
                         onClick={() => setIsOpen(!isOpen)}
                         ref={toggleButtonRef}
                         className="text-teal-600 focus:outline-none"
                     >
-                        <svg
-                            className="w-6 h-6"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d={
-                                    isOpen
-                                        ? 'M6 18L18 6M6 6l12 12'
-                                        : 'M4 6h16M4 12h16M4 18h16'
-                                }
+                                d={isOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
                             />
                         </svg>
                     </button>
@@ -106,19 +100,11 @@ export default function Navbar() {
                         </Link>
                     </motion.div>
                     <motion.div variants={linkVariants} whileHover="hover">
-                        <Link
-                            href="/#tour-explore-section"
-                            className="text-base text-gray-700 font-medium hover:text-teal-500 transition"
-                        >
-                            Tur
-                        </Link>
-                    </motion.div>
-                    <motion.div variants={linkVariants} whileHover="hover">
                         <button
                             onClick={handleWhatsAppClick}
-                            className="text-base text-gray-700 font-medium hover:text-teal-500 transition"
+                            className="flex-1 text-white bg-gradient-to-r from-green-500 to-teal-500 px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:shadow-neon"
                         >
-                            Kontak
+                            Hubungi Sekarang
                         </button>
                     </motion.div>
                 </div>
@@ -144,23 +130,11 @@ export default function Navbar() {
                                 </Link>
                             </motion.div>
                             <motion.div variants={linkVariants} whileHover="hover">
-                                <Link
-                                    href="/#tour-explore-section"
-                                    className="text-base font-medium text-gray-700"
-                                    onClick={() => setIsOpen(false)}
-                                >
-                                    Tour
-                                </Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
                                 <button
-                                    onClick={() => {
-                                        handleWhatsAppClick();
-                                        setIsOpen(false);
-                                    }}
-                                    className="text-base font-medium text-gray-700"
+                                    onClick={handleWhatsAppClick}
+                                    className="flex-1 text-white bg-gradient-to-r from-green-500 to-teal-500 px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:shadow-neon text-left"
                                 >
-                                    Kontak
+                                    Hubungi Sekarang
                                 </button>
                             </motion.div>
                         </motion.div>
