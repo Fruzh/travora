@@ -11,6 +11,7 @@ import testimonialsData from '@/data/testimonials';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { normalizeString, getMatchScore } from '@/utils/levenshtein';
 import React from 'react';
+import { useRouter } from 'next/router';
 
 const TOUR_SECTION = 'tour-explore-section';
 
@@ -25,6 +26,22 @@ export default function Home() {
   const [toursPerPage, setToursPerPage] = useState(6); // Default laptop
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const hash = router.asPath.split('#')[1];
+    if (hash) {
+      // Delay agar scroll dilakukan setelah komponen siap
+      setTimeout(() => {
+        const el = document.getElementById(hash);
+        if (el) {
+          const offset = 80; // Sesuaikan dengan tinggi navbar
+          const top = el.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, [router.asPath]);
 
   // Simulasi loading
   useEffect(() => {
@@ -174,9 +191,13 @@ export default function Home() {
   const scrollToTourSection = () => {
     const tourSection = document.querySelector(`[data-tour-section="${TOUR_SECTION}"]`);
     if (tourSection) {
-      tourSection.scrollIntoView({ behavior: 'smooth' });
+      const yOffset = -220;
+      const y = tourSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white font-poppins">
@@ -345,78 +366,85 @@ export default function Home() {
               </motion.div>
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex justify-center mt-8 flex-wrap gap-y-2 space-x-[6px]">
+                <div className="flex justify-center mt-8 flex-wrap items-center gap-x-6 gap-y-3">
                   {/* Tombol Sebelumnya */}
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === 1
+                  <div className="group-prev">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === 1
                         ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
                         : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                      }`}
-                  >
-                    <span className="hidden sm:inline">Sebelumnya</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
+                        }`}
+                    >
+                      <span className="hidden sm:inline">Sebelumnya</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  </div>
 
-                  {/* Tombol Halaman */}
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((page) => {
-                      if (totalPages <= 5) return true;
+                  {/* Tombol angka halaman */}
+                  <div className="group-pages flex items-center gap-[6px]">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        if (totalPages <= 5) return true;
 
-                      if (typeof window !== 'undefined' && window.innerWidth < 640) {
+                        if (typeof window !== 'undefined' && window.innerWidth < 640) {
+                          return (
+                            page === 1 ||
+                            page === totalPages ||
+                            Math.abs(page - currentPage) <= 1
+                          );
+                        }
+
                         return (
                           page === 1 ||
                           page === totalPages ||
                           Math.abs(page - currentPage) <= 1
                         );
-                      }
+                      })
+                      .map((page, i, arr) => {
+                        const prevPage = arr[i - 1];
+                        const showEllipsis = prevPage && page - prevPage > 1;
 
-                      return (
-                        page === 1 ||
-                        page === totalPages ||
-                        Math.abs(page - currentPage) <= 1
-                      );
-                    })
-                    .map((page, i, arr) => {
-                      const prevPage = arr[i - 1];
-                      const showEllipsis = prevPage && page - prevPage > 1;
-
-                      return (
-                        <React.Fragment key={page}>
-                          {showEllipsis && (
-                            <span className="px-1 text-gray-400 select-none">…</span>
-                          )}
-                          <button
-                            onClick={() => setCurrentPage(page)}
-                            className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === page
+                        return (
+                          <React.Fragment key={page}>
+                            {showEllipsis && (
+                              <span className="text-gray-400 px-1 select-none">…</span>
+                            )}
+                            <button
+                              onClick={() => setCurrentPage(page)}
+                              className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === page
                                 ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-teal-300 shadow-md'
                                 : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                              }`}
-                          >
-                            {page}
-                          </button>
-                        </React.Fragment>
-                      );
-                    })}
+                                }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
 
                   {/* Tombol Selanjutnya */}
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === totalPages
+                  <div className="group-next">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === totalPages
                         ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
                         : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                      }`}
-                  >
-                    <span className="hidden sm:inline">Selanjutnya</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                        }`}
+                    >
+                      <span className="hidden sm:inline">Selanjutnya</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
+
 
               )}
 
