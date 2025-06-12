@@ -12,7 +12,6 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { normalizeString, getMatchScore } from '@/utils/levenshtein';
 
 const TOUR_SECTION = 'tour-explore-section';
-const TOURS_PER_PAGE = 6;
 
 export default function Home() {
   const [filter, setFilter] = useState('all');
@@ -22,6 +21,7 @@ export default function Home() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [toursPerPage, setToursPerPage] = useState(6); // Default laptop
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -37,7 +37,7 @@ export default function Home() {
       setCurrentSlide((prev) => (prev + 1) % highlightsData.length);
     }, 5000);
     return () => clearTimeout(timer);
-  }, [highlightsData.length]);
+  }, []); // Hapus highlightsData.length dari dependensi
 
   // Tutup dropdown saat klik di luar
   useEffect(() => {
@@ -54,6 +54,24 @@ export default function Home() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Deteksi ukuran layar untuk toursPerPage
+  useEffect(() => {
+    const updateToursPerPage = () => {
+      if (window.innerWidth < 640) {
+        setToursPerPage(3); // HP
+      } else if (window.innerWidth < 1024) {
+        setToursPerPage(4); // Tablet
+      } else {
+        setToursPerPage(6); // Laptop
+      }
+      setCurrentPage(1); // Reset ke halaman 1 saat toursPerPage berubah
+    };
+
+    updateToursPerPage();
+    window.addEventListener('resize', updateToursPerPage);
+    return () => window.removeEventListener('resize', updateToursPerPage);
   }, []);
 
   // Logika filter dan pencarian
@@ -113,6 +131,7 @@ export default function Home() {
             setIsDropdownOpen(false); // Tutup dropdown
             setHighlightedIndex(-1);
             inputRef.current.focus(); // Pastikan input tetap fokus
+            console.log('Suggestion selected via Enter:', liveSuggestions[highlightedIndex].name);
           }
           break;
         case 'Escape':
@@ -140,11 +159,11 @@ export default function Home() {
   }, [highlightedIndex]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredTours.length / TOURS_PER_PAGE);
-  const startIndex = (currentPage - 1) * TOURS_PER_PAGE;
-  const paginatedTours = filteredTours.slice(startIndex, startIndex + TOURS_PER_PAGE);
+  const totalPages = Math.ceil(filteredTours.length / toursPerPage);
+  const startIndex = (currentPage - 1) * toursPerPage;
+  const paginatedTours = filteredTours.slice(startIndex, startIndex + toursPerPage);
 
-  // Animasi kartu tur
+  // Animasi kartu
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
@@ -209,8 +228,9 @@ export default function Home() {
           {highlightsData.map((_, index) => (
             <button
               key={index}
-              className={`w-3 h-3 rounded-full transition-all duration-300 transform hover:scale-125 ${index === currentSlide ? 'bg-teal-400 scale-125' : 'bg-white/50'
-                }`}
+              className={`w-3 h-3 rounded-full transition-all duration-300 transform hover:scale-125 ${
+                index === currentSlide ? 'bg-teal-400 scale-125' : 'bg-white/50'
+              }`}
               onClick={() => setCurrentSlide(index)}
             />
           ))}
@@ -269,13 +289,15 @@ export default function Home() {
                   {liveSuggestions.map((tour, index) => (
                     <div
                       key={tour.id}
-                      className={`px-4 py-2 text-gray-700 cursor-pointer transition-all duration-200 ${index === highlightedIndex ? 'bg-teal-100' : 'hover:bg-teal-50'
-                        }`}
+                      className={`px-4 py-2 text-gray-700 cursor-pointer transition-all duration-200 ${
+                        index === highlightedIndex ? 'bg-teal-100' : 'hover:bg-teal-50'
+                      }`}
                       onClick={() => {
                         setSearchQuery(tour.name);
                         setIsDropdownOpen(false); // Tutup dropdown
                         setHighlightedIndex(-1);
                         inputRef.current.focus(); // Pastikan input tetap fokus
+                        console.log('Suggestion selected via Click:', tour.name);
                       }}
                     >
                       {tour.name}
@@ -292,10 +314,11 @@ export default function Home() {
                     setFilter(category);
                     setCurrentPage(1); // Reset ke halaman 1 saat filter berubah
                   }}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-neon border-2 border-teal-300 ${filter === category
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-neon border-2 border-teal-300 ${
+                    filter === category
                       ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md'
                       : 'bg-white text-teal-600 hover:bg-teal-50'
-                    }`}
+                  }`}
                 >
                   {category === 'all' ? 'Semua' : category.charAt(0).toUpperCase() + category.slice(1)}
                 </button>
@@ -316,7 +339,7 @@ export default function Home() {
                 animate="visible"
                 variants={{
                   hidden: { opacity: 0 },
-                  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }, // Kembalikan staggerChildren
+                  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
                 }}
               >
                 <TourPackages tours={paginatedTours} variants={cardVariants} />
@@ -327,10 +350,11 @@ export default function Home() {
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === 1
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${
+                      currentPage === 1
                         ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
                         : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                      }`}
+                    }`}
                   >
                     Sebelumnya
                   </button>
@@ -338,10 +362,11 @@ export default function Home() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === page
+                      className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 border-2 ${
+                        currentPage === page
                           ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-teal-300 shadow-md'
                           : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                        }`}
+                      }`}
                     >
                       {page}
                     </button>
@@ -349,10 +374,11 @@ export default function Home() {
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === totalPages
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${
+                      currentPage === totalPages
                         ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
                         : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                      }`}
+                    }`}
                   >
                     Selanjutnya
                   </button>
@@ -382,7 +408,7 @@ export default function Home() {
                 className="bg-white/95 rounded-2xl shadow-lg p-6 text-center backdrop-blur-sm"
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }} // Samakan dengan tour
                 viewport={{ once: true }}
                 whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
               >
@@ -391,10 +417,10 @@ export default function Home() {
                   alt={testimonial.name}
                   width={80}
                   height={80}
-                  className="rounded-full mx-auto mb-4 shadow-md"
+                  className="rounded-full mx-auto mb-4 shadow-md aspect-square object-cover"
                   onError={() => console.error(`Gambar ${testimonial.image} tidak ditemukan`)}
                 />
-                <p className="text-gray-600 italic text-sm sm:text-base">"{testimonial.comment}"</p>
+                <p className="text-gray-600 italic text-sm sm:text-base">&quot;{testimonial.comment}&quot;</p>
                 <p className="mt-4 font-semibold text-gray-800 text-sm sm:text-base">{testimonial.name}</p>
               </motion.div>
             ))}
