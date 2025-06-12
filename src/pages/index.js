@@ -198,6 +198,16 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsDropdownOpen(false);
+      setHighlightedIndex(-1);
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white font-poppins">
@@ -286,12 +296,6 @@ export default function Home() {
                   setHighlightedIndex(-1);
                 }}
                 onFocus={() => searchQuery.length >= 1 && setIsDropdownOpen(true)}
-                onBlur={() => {
-                  setTimeout(() => {
-                    setIsDropdownOpen(false);
-                    setHighlightedIndex(-1);
-                  }, 100); // delay sedikit agar klik suggestion masih bisa masuk
-                }}
                 className="pl-10 pr-10 py-2.5 rounded-full w-full sm:w-80 bg-white/90 text-gray-800 border-2 border-teal-300 focus:border-teal-500 focus:ring-0 focus:outline-none transition-all duration-300 shadow-md hover:shadow-lg"
               />
               {searchQuery.length > 0 && (
