@@ -228,9 +228,8 @@ export default function Home() {
           {highlightsData.map((_, index) => (
             <button
               key={index}
-              className={`w-3 h-3 rounded-full transition-all duration-300 transform hover:scale-125 ${
-                index === currentSlide ? 'bg-teal-400 scale-125' : 'bg-white/50'
-              }`}
+              className={`w-3 h-3 rounded-full transition-all duration-300 transform hover:scale-125 ${index === currentSlide ? 'bg-teal-400 scale-125' : 'bg-white/50'
+                }`}
               onClick={() => setCurrentSlide(index)}
             />
           ))}
@@ -289,15 +288,14 @@ export default function Home() {
                   {liveSuggestions.map((tour, index) => (
                     <div
                       key={tour.id}
-                      className={`px-4 py-2 text-gray-700 cursor-pointer transition-all duration-200 ${
-                        index === highlightedIndex ? 'bg-teal-100' : 'hover:bg-teal-50'
-                      }`}
-                      onClick={() => {
+                      className={`px-4 py-2 text-gray-700 cursor-pointer transition-all duration-200 ${index === highlightedIndex ? 'bg-teal-100' : 'hover:bg-teal-50'
+                        }`}
+                      onPointerDown={() => {
                         setSearchQuery(tour.name);
                         setIsDropdownOpen(false); // Tutup dropdown
                         setHighlightedIndex(-1);
                         inputRef.current.focus(); // Pastikan input tetap fokus
-                        console.log('Suggestion selected via Click:', tour.name);
+                        console.log('Suggestion selected via Click or Tap:', tour.name);
                       }}
                     >
                       {tour.name}
@@ -305,6 +303,7 @@ export default function Home() {
                   ))}
                 </div>
               )}
+
             </div>
             <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
               {['all', 'cultural', 'beach', 'nature'].map((category) => (
@@ -314,11 +313,10 @@ export default function Home() {
                     setFilter(category);
                     setCurrentPage(1); // Reset ke halaman 1 saat filter berubah
                   }}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-neon border-2 border-teal-300 ${
-                    filter === category
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-neon border-2 border-teal-300 ${filter === category
                       ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md'
                       : 'bg-white text-teal-600 hover:bg-teal-50'
-                  }`}
+                    }`}
                 >
                   {category === 'all' ? 'Semua' : category.charAt(0).toUpperCase() + category.slice(1)}
                 </button>
@@ -350,11 +348,10 @@ export default function Home() {
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${
-                      currentPage === 1
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === 1
                         ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
                         : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                    }`}
+                      }`}
                   >
                     Sebelumnya
                   </button>
@@ -362,11 +359,10 @@ export default function Home() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 border-2 ${
-                        currentPage === page
+                      className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === page
                           ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-teal-300 shadow-md'
                           : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>
@@ -374,11 +370,10 @@ export default function Home() {
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${
-                      currentPage === totalPages
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === totalPages
                         ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
                         : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
-                    }`}
+                      }`}
                   >
                     Selanjutnya
                   </button>
