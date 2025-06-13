@@ -319,7 +319,7 @@ export default function TourDetail() {
                         </motion.section>
 
                         {/* Flights dan Price Details */}
-                        <div className="flex flex-col gap-6 lg:col-span-1">
+                        <div className="flex flex-col gap-6 mt-6 lg:mt-0 lg:col-span-1">
                             {/* Flights */}
                             <motion.section variants={itemVariants}>
                                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4" id="tour-flights">

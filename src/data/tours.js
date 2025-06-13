@@ -40,11 +40,11 @@ const tours = [
 		category: 'beach',
 		duration: 4,
 		inclusions: ['Akomodasi bintang 3 (3 malam)', 'Makan pagi dan siang', 'Transportasi laut dan darat', 'Pemandu lokal', 'Peralatan snorkeling', 'Penerbangan ekonomi dari Jakarta'],
-		highlights: ['Pantai Kelingking', 'Broken Beach', 'Crystal Bay', 'Angel’s Billabong'],
+		highlights: ['Pantai Kelingking', 'Broken Beach', 'Crystal Bay', 'Angel\'s Billabong'],
 		activities: ['Snorkeling', 'Fotografi pantai', 'Jalan-jalan di tebing'],
 		itinerary: [
 			{ day: 1, description: 'Tiba di Bali, transfer ke pelabuhan, naik kapal ke Nusa Penida. Check-in hotel. Malam: Bebas.' },
-			{ day: 2, description: 'Pagi: Kunjungi Pantai Kelingking dan Broken Beach. Siang: Makan siang lokal. Sore: Angel’s Billabong.' },
+			{ day: 2, description: 'Pagi: Kunjungi Pantai Kelingking dan Broken Beach. Siang: Makan siang lokal. Sore: Angel\'s Billabong.' },
 			{ day: 3, description: 'Pagi: Snorkeling di Crystal Bay (lihat manta ray). Siang: Makan siang. Sore: Bebas di pantai.' },
 			{ day: 4, description: 'Pagi: Check-out, kembali ke Bali. Sore: Transfer ke bandara untuk penerbangan pulang.' },
 		],
