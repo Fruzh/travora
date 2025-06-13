@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image'; // Tambah impor Image
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
@@ -33,8 +34,8 @@ export default function Navbar() {
     };
 
     const navVariants = {
-        hidden: { opacity: 0, y: -50 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+        hidden: { opacity: 0},
+        visible: { opacity: 1, transition: { duration: 0.5 } },
     };
 
     const menuVariants = {
@@ -63,12 +64,15 @@ export default function Navbar() {
             animate="visible"
         >
             <div className="container mx-auto px-4 flex justify-between items-center relative">
-                <Link
-                    href="/"
-                    className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-cyan-500"
-                    onClick={() => setIsOpen(false)}
-                >
-                    Bali Explore
+                <Link href="/" onClick={() => setIsOpen(false)}>
+                    <Image
+                        src="/logo/main-logo.png"
+                        alt="Bali Explore Logo"
+                        width={128} // Ukuran dasar untuk desktop
+                        height={32} // Sesuaikan dengan rasio logo asli
+                        className="w-24 sm:w-32 h-auto" // Responsif untuk mobile dan desktop
+                        priority // Muat logo lebih cepat karena di navbar
+                    />
                 </Link>
 
                 {/* Toggle Button (Mobile) */}

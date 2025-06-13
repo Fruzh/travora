@@ -1,37 +1,38 @@
 import Link from 'next/link';
+import Image from 'next/image'; // Tambah impor Image
 import { motion } from 'framer-motion';
 import { FaInstagram, FaFacebookF, FaTwitter, FaWhatsapp } from 'react-icons/fa';
 import { useMemo } from 'react';
 
 // Data konfigurasi
 const footerConfig = {
-    brand: 'Bali Explore',
+    brand: 'Travora',
     description: 'Pengalaman wisata premium di Bali dengan pemandu profesional dan destinasi terbaik.',
     contact: {
-        email: 'info@baliexplore.com',
+        email: 'info@travora.com',
         phone: '+62 123 456 7890',
         address: 'Jl. Raya Ubud, Bali, Indonesia',
         whatsapp: {
             number: '6281234567890',
-            message: 'Halo! Saya ingin bertanya tentang Bali Explore.',
+            message: 'Halo! Saya ingin bertanya tentang Travora.',
         },
     },
     socials: [
         {
             name: 'Instagram',
-            href: 'https://instagram.com/baliexplore',
+            href: 'https://instagram.com/travora',
             icon: FaInstagram,
             ariaLabel: 'Ikuti kami di Instagram',
         },
         {
             name: 'Facebook',
-            href: 'https://facebook.com/baliexplore',
+            href: 'https://facebook.com/travora',
             icon: FaFacebookF,
             ariaLabel: 'Ikuti kami di Facebook',
         },
         {
             name: 'Twitter',
-            href: 'https://twitter.com/baliexplore',
+            href: 'https://twitter.com/travora',
             icon: FaTwitter,
             ariaLabel: 'Ikuti kami di Twitter',
         },
@@ -40,7 +41,7 @@ const footerConfig = {
 
 // Animasi varian
 const footerVariants = {
-    hidden: { opacity: 0},
+    hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.8, staggerChildren: 0.2 } },
 };
 
@@ -94,9 +95,13 @@ export default function Footer() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
                     {/* Kolom 1: Branding */}
                     <motion.div variants={itemVariants}>
-                        <h3 className="text-xl sm:text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-teal-500 to-cyan-500 mb-4">
-                            {footerConfig.brand}
-                        </h3>
+                        <Image
+                            src="/logo/main-logo-white.png"
+                            alt="Travora Logo"
+                            width={128} // Ukuran dasar untuk desktop
+                            height={32} // Sesuaikan dengan rasio logo asli
+                            className="w-24 sm:w-32 h-auto mb-4" // Responsif untuk mobile dan desktop
+                        />
                         <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
                             {footerConfig.description}
                         </p>
@@ -107,7 +112,7 @@ export default function Footer() {
                         <h4 className="text-lg font-semibold text-gray-200 mb-4">Lokasi Kami</h4>
                         <div
                             role="region"
-                            aria-label="Peta lokasi Bali Explore di Jl. Raya Ubud"
+                            aria-label="Peta lokasi Travora di Jl. Raya Ubud"
                             className="w-full h-38 rounded-lg shadow-md overflow-hidden bg-gray-800"
                         >
                             <iframe
@@ -116,7 +121,7 @@ export default function Footer() {
                                 allowFullScreen
                                 loading="lazy"
                                 referrerPolicy="no-referrer-when-downgrade"
-                                title="Peta Bali Explore di Jl. Raya Ubud, Bali"
+                                title="Peta Travora di Jl. Raya Ubud, Bali"
                             />
                         </div>
                     </motion.div>

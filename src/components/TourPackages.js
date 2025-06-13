@@ -13,7 +13,7 @@ export default function TourPackages({ tours, variants }) {
             {tours.map((tour) => (
                 <motion.div
                     key={tour.id}
-                    className="bg-white rounded-2xl shadow-xl p-6 bg-white/95 backdrop-blur-sm flex flex-col transition-all duration-300 hover:shadow-neon hover:scale-105"
+                    className="bg-white rounded-2xl shadow-xl p-6 bg-white/95 backdrop-blur-sm flex flex-col transition-all duration-300 hover:shadow-neon hover:scale-102"
                     variants={variants}
                 >
                     <Image
