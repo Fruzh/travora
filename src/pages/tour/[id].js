@@ -4,7 +4,8 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
-import { FiArrowLeft, FiChevronLeft, FiChevronRight, FiSend } from 'react-icons/fi';
+import { FiArrowLeft, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { Plane } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import tourData from '@/data/tours';
@@ -334,7 +335,7 @@ export default function TourDetail() {
                                                 variants={itemVariants}
                                             >
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <FiSend className="w-5 h-5 text-teal-500" />
+                                                    <Plane className="w-5 h-5 text-teal-500" />
                                                     <h4 className="text-base font-semibold text-gray-900">{flight.airline}</h4>
                                                 </div>
                                                 <p className="text-sm text-gray-600 font-light">Kelas: {flight.class}</p>
