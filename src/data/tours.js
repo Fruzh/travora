@@ -192,7 +192,7 @@ const tours = [
 		name: 'Bali Off-Road Adventure',
 		description: 'Petualangan seru dengan ATV dan trekking di pedesaan Bali.',
 		price: 'Rp 13,000,000',
-		image: '/images/offroad.jpg',
+		image: '/images/offroad.jpeg',
 		category: 'adventure',
 		duration: 7,
 		inclusions: ['Akomodasi bintang 4 (6 malam)', 'Makan pagi dan siang', 'Transportasi AC', 'Pemandu lokal', 'Peralatan ATV', 'Penerbangan ekonomi dari Jakarta'],
