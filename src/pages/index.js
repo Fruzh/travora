@@ -10,9 +10,18 @@ import highlightsData from '@/data/highlights';
 import testimonialsData from '@/data/testimonials';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { normalizeString, getMatchScore } from '@/utils/levenshtein';
-import React from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import React from 'react';
+
+// Debounce function (manual, kalau nggak pake lodash)
+const debounce = (func, wait) => {
+	let timeout;
+	return (...args) => {
+		clearTimeout(timeout);
+		timeout = setTimeout(() => func(...args), wait);
+	};
+};
 
 const TOUR_SECTION = 'tour-explore-section';
 
@@ -24,19 +33,20 @@ export default function Home() {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [highlightedIndex, setHighlightedIndex] = useState(-1);
 	const [currentPage, setCurrentPage] = useState(1);
-	const [toursPerPage, setToursPerPage] = useState(6); // Default laptop
+	const [toursPerPage, setToursPerPage] = useState(6);
 	const dropdownRef = useRef(null);
 	const inputRef = useRef(null);
+	const prevToursPerPage = useRef(6); // Track toursPerPage sebelumnya
 	const router = useRouter();
 
+	// Scroll ke section berdasarkan hash
 	useEffect(() => {
 		const hash = router.asPath.split('#')[1];
 		if (hash) {
-			// Delay agar scroll dilakukan setelah komponen siap
 			setTimeout(() => {
 				const el = document.getElementById(hash);
 				if (el) {
-					const offset = 80; // Sesuaikan dengan tinggi navbar
+					const offset = 80;
 					const top = el.getBoundingClientRect().top + window.scrollY - offset;
 					window.scrollTo({ top, behavior: 'smooth' });
 				}
@@ -55,8 +65,8 @@ export default function Home() {
 		const timer = setInterval(() => {
 			setCurrentSlide((prev) => (prev + 1) % highlightsData.length);
 		}, 5000);
-		return () => clearTimeout(timer);
-	}, []); // Hapus highlightsData.length dari dependensi
+		return () => clearInterval(timer);
+	}, []);
 
 	// Tutup dropdown saat klik di luar
 	useEffect(() => {
@@ -75,22 +85,43 @@ export default function Home() {
 		return () => document.removeEventListener('mousedown', handleClickOutside);
 	}, []);
 
-	// Deteksi ukuran layar untuk toursPerPage
+	// Update toursPerPage berdasarkan ukuran layar
 	useEffect(() => {
 		const updateToursPerPage = () => {
+			let newToursPerPage;
 			if (window.innerWidth < 640) {
-				setToursPerPage(3); // HP
+				newToursPerPage = 3; // HP
 			} else if (window.innerWidth < 1024) {
-				setToursPerPage(4); // Tablet
+				newToursPerPage = 4; // Tablet
 			} else {
-				setToursPerPage(6); // Laptop
+				newToursPerPage = 6; // Laptop
 			}
-			setCurrentPage(1); // Reset ke halaman 1 saat toursPerPage berubah
+
+			// Cuma reset currentPage kalau toursPerPage berubah
+			if (newToursPerPage !== prevToursPerPage.current) {
+				console.log('ToursPerPage changed:', prevToursPerPage.current, '->', newToursPerPage);
+				setToursPerPage(newToursPerPage);
+				setCurrentPage(1);
+				prevToursPerPage.current = newToursPerPage;
+			}
 		};
 
+		// Debounce resize event
+		const debouncedUpdate = debounce(updateToursPerPage, 100);
+
 		updateToursPerPage();
-		window.addEventListener('resize', updateToursPerPage);
-		return () => window.removeEventListener('resize', updateToursPerPage);
+		window.addEventListener('resize', debouncedUpdate);
+		return () => window.removeEventListener('resize', debouncedUpdate);
+	}, []);
+
+	// Tutup dropdown saat scroll
+	useEffect(() => {
+		const handleScroll = () => {
+			setIsDropdownOpen(false);
+			setHighlightedIndex(-1);
+		};
+		window.addEventListener('scroll', handleScroll);
+		return () => window.removeEventListener('scroll', handleScroll);
 	}, []);
 
 	// Logika filter dan pencarian
@@ -122,7 +153,7 @@ export default function Home() {
 			.map((s) => s.tour);
 	}, [filter, searchQuery]);
 
-	// Live suggestions (maksimum 5 tur)
+	// Live suggestions
 	const liveSuggestions = useMemo(() => {
 		return searchQuery.length >= 1 ? filteredTours.slice(0, 5) : [];
 	}, [searchQuery, filteredTours]);
@@ -147,9 +178,9 @@ export default function Home() {
 					event.preventDefault();
 					if (highlightedIndex >= 0 && liveSuggestions[highlightedIndex]) {
 						setSearchQuery(liveSuggestions[highlightedIndex].name);
-						setIsDropdownOpen(false); // Tutup dropdown
+						setIsDropdownOpen(false);
 						setHighlightedIndex(-1);
-						inputRef.current.focus(); // Pastikan input tetap fokus
+						inputRef.current.focus();
 						console.log('Suggestion selected via Enter:', liveSuggestions[highlightedIndex].name);
 					}
 					break;
@@ -167,7 +198,7 @@ export default function Home() {
 		return () => document.removeEventListener('keydown', handleKeyDown);
 	}, [isDropdownOpen, highlightedIndex, liveSuggestions]);
 
-	// Scroll suggestion yang di-highlight ke dalam view
+	// Scroll suggestion ke dalam view
 	useEffect(() => {
 		if (highlightedIndex >= 0 && dropdownRef.current) {
 			const highlightedElement = dropdownRef.current.children[highlightedIndex];
@@ -188,31 +219,19 @@ export default function Home() {
 		visible: { opacity: 1, transition: { duration: 0.3 } },
 	};
 
-	// Handler untuk scroll ke section tur
+	// Scroll ke section tur
 	const scrollToTourSection = () => {
 		const tourSection = document.querySelector(`[data-tour-section="${TOUR_SECTION}"]`);
 		if (tourSection) {
 			const yOffset = -220;
 			const y = tourSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
 			window.scrollTo({ top: y, behavior: 'smooth' });
 		}
 	};
 
-	useEffect(() => {
-		const handleScroll = () => {
-			setIsDropdownOpen(false);
-			setHighlightedIndex(-1);
-		};
-
-		window.addEventListener('scroll', handleScroll, true);
-		return () => window.removeEventListener('scroll', handleScroll, true);
-	}, []);
-
 	const tour = {
-		name: 'Travero',
-		description:
-			'Temukan keajaiban dengan tour eksklusif kami untuk pengalaman tak terlupakan.',
+		name: 'Travora', // Fix typo 'Travero'
+		description: 'Temukan keajaiban Bali dengan tur eksklusif kami untuk pengalaman tak terlupakan.',
 		category: 'Adventure Tour',
 	};
 
@@ -225,16 +244,17 @@ export default function Home() {
 		url: 'https://bali-explore.vercel.app',
 	};
 
-
 	return (
-
 		<div className="min-h-screen bg-gradient-to-b from-gray-50 to-white font-poppins">
 			<Head>
 				<title>{`${tour.name} | Explore Bali`}</title>
 				<meta name="description" content={tour.description.slice(0, 160)} />
 				<meta name="keywords" content={`Bali tour, ${tour.name}, ${tour.category}`} />
 				{schemaOrg && (
-					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }} />
+					<script
+						type="application/ld+json"
+						dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
+					/>
 				)}
 			</Head>
 
@@ -257,7 +277,9 @@ export default function Home() {
 							className="object-cover"
 							priority
 							quality={85}
-							onError={() => console.error(`Gambar ${highlightsData[currentSlide].image} tidak ditemukan`)}
+							onError={() =>
+								console.error(`Gambar ${highlightsData[currentSlide].image} tidak ditemukan`)
+							}
 						/>
 					</motion.div>
 				</AnimatePresence>
@@ -272,7 +294,7 @@ export default function Home() {
 							Petualangan Impian Anda
 						</h1>
 						<p className="text-lg sm:text-xl md:text-2xl mb-8 max-w-2xl mx-auto drop-shadow-md">
-							Temukan keajaiban dengan tour eksklusif kami untuk pengalaman tak terlupakan.
+							Temukan keajaiban Bali dengan tur eksklusif kami untuk pengalaman tak terlupakan.
 						</p>
 						<Link
 							href={`#${TOUR_SECTION}`}
@@ -304,12 +326,24 @@ export default function Home() {
 				viewport={{ once: true }}
 			>
 				<div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-					<h2 className="text-2xl sm:text-3xl font-bold text-gray-800 drop-shadow-sm">Pilih Petualangan Anda</h2>
+					<h2 className="text-2xl sm:text-3xl font-bold text-gray-800 drop-shadow-sm">
+						Pilih Petualangan Anda
+					</h2>
 					<div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
 						<div className="relative w-full sm:w-auto">
 							<span className="absolute inset-y-0 left-3 flex items-center">
-								<svg className="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+								<svg
+									className="w-5 h-5 text-teal-500"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+									/>
 								</svg>
 							</span>
 							<input
@@ -334,8 +368,18 @@ export default function Home() {
 										inputRef.current.focus();
 									}}
 								>
-									<svg className="w-5 h-5 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+									<svg
+										className="w-5 h-5 text-gray-500 hover:text-gray-700"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M6 18L18 6M6 6l12 12"
+										/>
 									</svg>
 								</span>
 							)}
@@ -351,9 +395,9 @@ export default function Home() {
 												}`}
 											onPointerDown={() => {
 												setSearchQuery(tour.name);
-												setIsDropdownOpen(false); // Tutup dropdown
+												setIsDropdownOpen(false);
 												setHighlightedIndex(-1);
-												inputRef.current.focus(); // Pastikan input tetap fokus
+												inputRef.current.focus();
 												console.log('Suggestion selected via Click or Tap:', tour.name);
 											}}
 										>
@@ -362,7 +406,6 @@ export default function Home() {
 									))}
 								</div>
 							)}
-
 						</div>
 						<div className="flex flex-wrap gap-2 justify-center sm:justify-start">
 							{['all', 'cultural', 'beach', 'nature', 'adventure'].map((category) => (
@@ -370,14 +413,16 @@ export default function Home() {
 									key={category}
 									onClick={() => {
 										setFilter(category);
-										setCurrentPage(1); // Reset ke halaman 1 saat filter berubah
+										setCurrentPage(1);
 									}}
 									className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-102 hover:shadow-neon border-2 border-teal-300 ${filter === category
-										? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md'
-										: 'bg-white text-teal-600 hover:bg-teal-50'
+											? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md'
+											: 'bg-white text-teal-600 hover:bg-teal-50'
 										}`}
 								>
-									{category === 'all' ? 'Semua' : category.charAt(0).toUpperCase() + category.slice(1)}
+									{category === 'all'
+										? 'Semua'
+										: category.charAt(0).toUpperCase() + category.slice(1)}
 								</button>
 							))}
 						</div>
@@ -387,7 +432,9 @@ export default function Home() {
 					{isLoading ? (
 						<LoadingSpinner />
 					) : paginatedTours.length === 0 ? (
-						<p className="text-center text-gray-600">Tidak ada tur yang ditemukan. Coba kata kunci lain!</p>
+						<p className="text-center text-gray-600">
+							Tidak ada tur yang ditemukan. Coba kata kunci lain!
+						</p>
 					) : (
 						<>
 							<motion.div
@@ -410,13 +457,24 @@ export default function Home() {
 											onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
 											disabled={currentPage === 1}
 											className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === 1
-												? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
-												: 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
+													? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
+													: 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
 												}`}
 										>
 											<span className="hidden sm:inline">Sebelumnya</span>
-											<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												className="w-4 h-4 sm:hidden"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M15 19l-7-7 7-7"
+												/>
 											</svg>
 										</button>
 									</div>
@@ -426,7 +484,6 @@ export default function Home() {
 										{Array.from({ length: totalPages }, (_, i) => i + 1)
 											.filter((page) => {
 												if (totalPages <= 5) return true;
-
 												if (typeof window !== 'undefined' && window.innerWidth < 640) {
 													return (
 														page === 1 ||
@@ -434,7 +491,6 @@ export default function Home() {
 														Math.abs(page - currentPage) <= 1
 													);
 												}
-
 												return (
 													page === 1 ||
 													page === totalPages ||
@@ -453,8 +509,8 @@ export default function Home() {
 														<button
 															onClick={() => setCurrentPage(page)}
 															className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === page
-																? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-teal-300 shadow-md'
-																: 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
+																	? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-teal-300 shadow-md'
+																	: 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
 																}`}
 														>
 															{page}
@@ -467,24 +523,34 @@ export default function Home() {
 									{/* Tombol Selanjutnya */}
 									<div className="group-next">
 										<button
-											onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+											onClick={() =>
+												setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+											}
 											disabled={currentPage === totalPages}
 											className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border-2 ${currentPage === totalPages
-												? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
-												: 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
+													? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
+													: 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50 hover:shadow-neon'
 												}`}
 										>
 											<span className="hidden sm:inline">Selanjutnya</span>
-											<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												className="w-4 h-4 sm:hidden"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M9 5l7 7-7 7"
+												/>
 											</svg>
 										</button>
 									</div>
 								</div>
-
-
 							)}
-
 						</>
 					)}
 				</div>
@@ -509,7 +575,7 @@ export default function Home() {
 								className="bg-white/95 rounded-2xl shadow-lg p-6 text-center backdrop-blur-sm"
 								initial={{ opacity: 0, y: 50 }}
 								whileInView={{ opacity: 1, y: 0 }}
-								transition={{ duration: 0.3, delay: index * 0.1 }} // Samakan dengan tour
+								transition={{ duration: 0.3, delay: index * 0.1 }}
 								viewport={{ once: true }}
 								whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
 							>
@@ -519,10 +585,16 @@ export default function Home() {
 									width={80}
 									height={80}
 									className="rounded-full mx-auto mb-4 shadow-md aspect-square object-cover"
-									onError={() => console.error(`Gambar ${testimonial.image} tidak ditemukan`)}
+									onError={() =>
+										console.error(`Gambar ${testimonial.image} tidak ditemukan`)
+									}
 								/>
-								<p className="text-gray-600 italic text-sm sm:text-base">&quot;{testimonial.comment}&quot;</p>
-								<p className="mt-4 font-semibold text-gray-800 text-sm sm:text-base">{testimonial.name}</p>
+								<p className="text-gray-600 italic text-sm sm:text-base">
+									"{testimonial.comment}"
+								</p>
+								<p className="mt-4 font-semibold text-gray-800 text-sm sm:text-base">
+									{testimonial.name}
+								</p>
 							</motion.div>
 						))}
 					</div>
@@ -538,7 +610,9 @@ export default function Home() {
 				viewport={{ once: true }}
 			>
 				<div className="container mx-auto px-4 sm:px-6 text-center">
-					<h2 className="text-2xl sm:text-4xl font-bold mb-4 drop-shadow-lg">Mulai Petualangan Anda di Bali!</h2>
+					<h2 className="text-2xl sm:text-4xl font-bold mb-4 drop-shadow-lg">
+						Mulai Petualangan Anda di Bali!
+					</h2>
 					<p className="text-lg sm:text-xl mb-8 max-w-2xl mx-auto drop-shadow-md">
 						Pesan tur Anda sekarang dan wujudkan liburan impian bersama kami.
 					</p>
