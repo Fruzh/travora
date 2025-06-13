@@ -318,12 +318,12 @@ export default function Home() {
                 transition={{ duration: 0.8 }}
                 viewport={{ once: true }}
             >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 items-start">
+                <div className="grid grid-cols-1 xl:grid-cols-[1fr_2fr] gap-4 mb-8 items-start">
                     <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 drop-shadow-sm">
                         Pilih Petualangan Anda
                     </h2>
-                    <div className="flex flex-col gap-4 w-full">
-                        <div className="relative w-full md:w-80">
+                    <div className="flex flex-col items-center xl:flex-row xl:justify-end gap-4 w-full">
+                        <div className="relative w-full lg:w-120 xl:w-80">
                             <span className="absolute inset-y-0 left-3 flex items-center">
                                 <svg
                                     className="w-5 h-5 text-teal-500"
