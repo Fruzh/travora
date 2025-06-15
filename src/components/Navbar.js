@@ -8,6 +8,9 @@ export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
     const toggleButtonRef = useRef(null);
+    // Tambah ini setelah useState:
+    const [isMenuVisible, setIsMenuVisible] = useState(false);
+
     const router = useRouter();
 
     useEffect(() => {
@@ -34,7 +37,7 @@ export default function Navbar() {
     };
 
     const navVariants = {
-        hidden: { opacity: 0},
+        hidden: { opacity: 0 },
         visible: { opacity: 1, transition: { duration: 0.5 } },
     };
 
@@ -114,36 +117,53 @@ export default function Navbar() {
                 </div>
 
                 {/* Mobile Dropdown */}
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                     {isOpen && (
                         <motion.div
+                            key="mobile-menu"
                             ref={menuRef}
                             variants={menuVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className="absolute top-full left-0 w-full bg-white/95 shadow-md rounded-b-lg p-4 pt-8 flex flex-col gap-3 md:hidden"
+                            onAnimationComplete={(definition) => {
+                                if (definition === "visible") {
+                                    setIsMenuVisible(true);
+                                } else if (definition === "exit") {
+                                    setIsMenuVisible(false);
+                                }
+                            }}
+                            className="absolute top-full left-0 w-full bg-white/95 shadow-md rounded-b-lg overflow-hidden md:hidden"
                         >
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Link
-                                    href="/"
-                                    className="text-base font-medium text-gray-700"
-                                    onClick={() => setIsOpen(false)}
-                                >
-                                    Beranda
-                                </Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <button
-                                    onClick={handleWhatsAppClick}
-                                    className="flex-1 text-white bg-gradient-to-r from-green-500 to-teal-500 px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:shadow-neon text-left"
-                                >
-                                    Hubungi Sekarang
-                                </button>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: isMenuVisible ? 1 : 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="p-4 pt-8 flex flex-col gap-3"
+                            >
+                                <motion.div variants={linkVariants} whileHover="hover">
+                                    <Link
+                                        href="/"
+                                        className="text-base font-medium text-gray-700"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        Beranda
+                                    </Link>
+                                </motion.div>
+                                <motion.div variants={linkVariants} whileHover="hover">
+                                    <button
+                                        onClick={handleWhatsAppClick}
+                                        className="text-white bg-gradient-to-r from-green-500 to-teal-500 px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:shadow-neon text-left"
+                                    >
+                                        Hubungi Sekarang
+                                    </button>
+                                </motion.div>
                             </motion.div>
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+
             </div>
         </motion.nav>
     );
